@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<!--suppress ALL -->
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automata Jutalom Gyűjtő - Szerverállapot</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#00bcd4">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      padding: 20px;
+      background-color: #1e1e1e;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #7c4dff;
+      margin-top: 0;
+    }
+    p {
+      margin: 10px 0;
+      line-height: 1.5;
+    }
+    .status {
+      display: inline-block;
+      padding: 8px 16px;
+      margin: 15px 0;
+      border-radius: 50px;
+      font-weight: bold;
+    }
+    .online {
+      background-color: #4caf50;
+      color: white;
+    }
+    .offline {
+      background-color: #f44336;
+      color: white;
+    }
+    .button {
+      display: inline-block;
+      background-color: #7c4dff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px 5px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .button:hover {
+      background-color: #651fff;
+    }
+    .api-info {
+      background-color: #2d2d2d;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+      text-align: left;
+      overflow: auto;
+    }
+    .version {
+      font-size: 0.8em;
+      color: #aaa;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Automata Jutalom Gyűjtő</h1>
+    <p>Automata napi bónuszok gyűjtése, szokáskövetés és feladatmenedzsment</p>
+    
+    <div id="status-indicator" class="status offline">Szerver ellenőrzése...</div>
+    
+    <div class="api-info" id="server-info">
+      Szerver információk betöltése...
+    </div>
+      <a class="button" href="/public/simple-test.html">API Tesztoldal</a>
+      <a href="/api/dailyMissions" class="button">Napi küldetések</a>
+      <a href="/api/external-sources" class="button">Külső források</a>
+
+
+    <p class="version">Verzió: 1.0.0 (2025. április 25.)</p>
+  </div>
+
+  <script>
+    // Ellenőrizzük a szerver állapotát
+    async function checkServerStatus() {
+      try {
+        const response = await fetch('/api/__health');
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('status-indicator').className = 'status online';
+          document.getElementById('status-indicator').textContent = 'Szerver online';
+          
+          // Megjelenítjük a szerver információkat
+          document.getElementById('server-info').innerHTML = `
+            <strong>Állapot:</strong> ${data.status}<br>
+            <strong>Idő:</strong> ${new Date(data.time).toLocaleString()}<br>
+            <strong>Szerver:</strong> ${data.server}<br>
+            <strong>API:</strong> ${data.api}<br>
+          `;
+        } else {
+          document.getElementById('status-indicator').className = 'status offline';
+          document.getElementById('status-indicator').textContent = 'Szerver válaszolt, de hibával';
+          document.getElementById('server-info').textContent = `Hibakód: ${response.status} - ${response.statusText}`;
+        }
+      } catch (error) {
+        document.getElementById('status-indicator').className = 'status offline';
+        document.getElementById('status-indicator').textContent = 'Szerver nem elérhető';
+        document.getElementById('server-info').textContent = `Hiba: ${error.message}`;
+      }
+    }
+
+    // Oldalletöltéskor ellenőrizzük a szerver állapotát
+    window.addEventListener('load', checkServerStatus);
+    
+    // Service Worker regisztrálása a PWA funkciókhoz
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker regisztrálva: ', registration.scope);
+          })
+          .catch(error => {
+            console.error('ServiceWorker regisztráció sikertelen: ', error);
+          });
+      });
+    }
+  </script>
+  
+  <!-- Telepítési lehetőségek -->
+  <div style="text-align: center; margin-top: 30px;">
+    <h2 style="color: #00bcd4; margin-bottom: 20px;">Válasszon telepítési módot:</h2>
+    
+    <a href="/download-apk.html" style="display: inline-block; background-color: #00bcd4; color: white; padding: 15px 30px; margin: 10px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 18px; text-transform: uppercase; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+      ANDROID APK LETÖLTÉSE
+    </a>
+    
+    <a href="/web-install.html" style="display: inline-block; background-color: #4caf50; color: white; padding: 15px 30px; margin: 10px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 18px; text-transform: uppercase; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+      TELEPÍTÉS BÖNGÉSZŐBŐL
+    </a>
+    
+    <p style="color: #ccc; margin-top: 15px;">
+      Ha az APK nem működik, használja a "Telepítés böngészőből" opciót, amely minden eszközön működik.
+    </p>
+  </div>
+</body>
+</html>
